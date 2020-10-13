@@ -73,7 +73,8 @@ if __name__ == "__main__":
         fileanno = open(annofile, 'w')
     fileout = open(outfile, 'w')
     Lines = filein.readlines()
-    for inline in Lines:
+    for lnum in range(len(Lines)):
+        inline = Lines[lnum]
         inline = inline.strip()
         if len(inline) == 0:
             continue
@@ -162,10 +163,15 @@ if __name__ == "__main__":
             # Fusion 360 restriction uses G1 at full cutting speed instead of rapid G0
             # Was speed set high as well?
             if not isg and fp >= 0 and target_f >= current_f:
-                # Probably start of a rapid
-                rapidmove = True
-                anno += " (Move upwards into rapid)"
-                outline = "G0 Z" + str(target_z)  # Ignore F parameter
+                # Probably start of a rapid, but look at next move
+                nextline = Lines[lnum+1]
+                if nextline.find('Z') < 0:
+                    rapidmove = True
+                    anno += " (Move upwards into rapid)"
+                    outline = "G0 Z" + str(target_z)  # Ignore F parameter
+                else:
+                    rapidmove = False
+                    anno += " (Move update, but not into rapid)"
         else:
             anno += " (Going down)"
             # Do not interfere with explicit G commands in first version
